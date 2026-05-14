@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500&display=swap');
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #0d0d0f;
+    color: #e8e4dc;
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    padding: 32px 24px;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: 26px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    color: #f0ebe2;
+    margin-bottom: 6px;
+  }
+
+  .subtitle {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: #5a5a6a;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 28px;
+  }
+
+  .team-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .card {
+    background: #16161a;
+    border: 1px solid #222228;
+    border-radius: 12px;
+    padding: 16px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--accent);
+    opacity: 0.7;
+  }
+
+  .card:hover { border-color: var(--accent); background: #1a1a20; }
+  .card.active { border-color: var(--accent); background: #1c1c22; }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+
+  .avatar {
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    background: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px;
+    flex-shrink: 0;
+    opacity: 0.85;
+  }
+
+  .role-name {
+    font-family: 'Syne', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    color: #f0ebe2;
+    line-height: 1.2;
+  }
+
+  .role-tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 2px;
+  }
+
+  .card-questions { display: none; margin-top: 10px; border-top: 1px solid #222228; padding-top: 10px; }
+  .card.active .card-questions { display: block; }
+
+  .card-questions li {
+    font-size: 11px;
+    color: #8a8a9a;
+    line-height: 1.6;
+    padding: 2px 0 2px 14px;
+    position: relative;
+    list-style: none;
+  }
+
+  .card-questions li::before {
+    content: '→';
+    position: absolute;
+    left: 0;
+    color: var(--accent);
+    opacity: 0.6;
+    font-size: 10px;
+    top: 3px;
+  }
+
+  .prompt-section {
+    background: #16161a;
+    border: 1px solid #222228;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+
+  .section-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: #5a5a6a;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  textarea {
+    width: 100%;
+    background: #0d0d0f;
+    border: 1px solid #2a2a32;
+    border-radius: 8px;
+    color: #e8e4dc;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    padding: 12px;
+    resize: vertical;
+    min-height: 80px;
+    outline: none;
+    transition: border-color 0.2s;
+    line-height: 1.5;
+  }
+
+  textarea:focus { border-color: #4a4aff; }
+
+  .select-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 12px 0 14px;
+  }
+
+  .toggle-btn {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    padding: 5px 10px;
+    border-radius: 20px;
+    border: 1px solid #2a2a32;
+    background: transparent;
+    color: #6a6a7a;
+    cursor: pointer;
+    transition: all 0.15s;
+    letter-spacing: 0.5px;
+  }
+
+  .toggle-btn.selected {
+    background: var(--btn-color);
+    border-color: var(--btn-color);
+    color: #0d0d0f;
+    font-weight: 500;
+  }
+
+  .run-btn {
+    width: 100%;
+    padding: 13px;
+    background: #e8e4dc;
+    color: #0d0d0f;
+    border: none;
+    border-radius: 8px;
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .run-btn:hover { background: #fff; }
+  .run-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .output-section { display: none; margin-top: 16px; }
+  .output-section.visible { display: block; }
+
+  .voice-block {
+    margin-bottom: 14px;
+    background: #0d0d0f;
+    border: 1px solid #222228;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .voice-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 11px 14px;
+    border-bottom: 1px solid #1a1a20;
+  }
+
+  .voice-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
+
+  .voice-name {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--accent);
+  }
+
+  .voice-body {
+    padding: 14px;
+    font-size: 13px;
+    line-height: 1.75;
+    color: #c0bcb4;
+    white-space: pre-wrap;
+  }
+
+  .copy-btn {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    border: 1px solid #2a2a32;
+    background: transparent;
+    color: #5a5a6a;
+    cursor: pointer;
+    margin-left: auto;
+    transition: all 0.15s;
+  }
+
+  .copy-btn:hover { color: #e8e4dc; border-color: #4a4a5a; }
+
+  .shortcut-box {
+    background: #0d0d0f;
+    border: 1px solid #2a2a32;
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin-top: 16px;
+  }
+
+  .shortcut-code {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: #7a9f7a;
+    line-height: 1.8;
+    white-space: pre-wrap;
+  }
+
+  .loading-pulse { animation: pulse 1s ease-in-out infinite; display: inline-block; }
+  @keyframes pulse { 0%,100%{opacity:0.3} 50%{opacity:1} }
+</style>
+</head>
+<body>
+
+<h1>Virtual Product Team</h1>
+<p class="subtitle">Expert panel review for product ideas</p>
+
+<div class="team-grid" id="teamGrid"></div>
+
+<div class="prompt-section">
+  <div class="section-label">Your product idea</div>
+  <textarea id="ideaInput" placeholder="Describe your product idea in a few sentences. The more specific, the better the critique."></textarea>
+  <div class="section-label" style="margin-top:14px">Active reviewers</div>
+  <div class="select-row" id="toggleRow"></div>
+  <button class="run-btn" id="runBtn" onclick="runPanel()">Run Panel Review</button>
+</div>
+
+<div class="output-section" id="outputSection">
+  <div id="outputBlocks"></div>
+</div>
+
+<div class="shortcut-box">
+  <div class="section-label" style="margin-bottom:8px">Claude shortcut prompt</div>
+  <div class="shortcut-code" id="shortcutDisplay">Select team members and paste your idea to generate a reusable shortcut prompt</div>
+</div>
+
+<script>
+const TEAM = [
+  {
+    id: 'strategist',
+    name: 'Product Strategist',
+    tag: 'Viability & Fit',
+    emoji: '🎯',
+    accent: '#6e8efb',
+    focus: 'Product/market fit, competitive landscape, user need validation, risk assessment, product strategy',
+    systemPrompt: `You are a Senior Product Strategist reviewing a new product idea. Your job is to rigorously challenge product/market fit, competitive positioning, user need validity, and strategic risks. You are direct, specific, and skeptical. You do not validate — you scrutinize. You ask the hardest questions about why this product deserves to exist, who the real competitors are (including indirect ones), and what assumptions could sink this. Speak in first person. Use short paragraphs. No bullet lists. Aim for 180 words.`,
+    questions: [
+      'Is there an urgent, specific user need or are we solving a vitamin problem?',
+      'Who are the direct and indirect competitors, and why would users switch?',
+      'What assumptions are we making that could be completely wrong?',
+      'Where does this strategy fall apart at scale?',
+      'What is the single riskiest thing about this idea?',
+    ]
+  },
+  {
+    id: 'ceo',
+    name: 'CEO / Executive',
+    tag: 'Finance & Growth',
+    emoji: '📊',
+    accent: '#f9a825',
+    focus: 'Business model, budget, GTM at scale, brand risk, investment readiness, launch timing, unit economics',
+    systemPrompt: `You are a CEO reviewing a product pitch from your team. Your lens is the business: unit economics, path to profitability, brand risk, capital requirements, GTM at scale, and launch timing relative to market conditions. You are pragmatic and financially rigorous. You ask what this costs to build, what it costs to acquire users, and whether the numbers can ever work. You push on board-readiness and investor story. Speak in first person. Use short paragraphs. No bullet lists. Aim for 180 words.`,
+    questions: [
+      'What are the unit economics and path to profitability?',
+      'What does a 3-year growth curve realistically look like?',
+      'Does this protect or dilute our brand positioning?',
+      'What is the capital requirement and funding story?',
+      'Is the timing right given current market and competitive conditions?',
+    ]
+  },
+  {
+    id: 'designer',
+    name: 'Product Designer',
+    tag: 'UX & Design Systems',
+    emoji: '✦',
+    accent: '#e040fb',
+    focus: 'Usability, accessibility, interaction design, design system scalability, visual consistency, edge cases',
+    systemPrompt: `You are a senior Product Designer reviewing a product concept. You challenge usability, user flow logic, accessibility, edge case handling, and whether the experience can be built within an existing design system without creating technical debt. You think about empty states, error states, first-time user experience, and whether the visual language matches category expectations. You are not here to make it look pretty — you're here to make sure it works and scales. Speak in first person. Use short paragraphs. No bullet lists. Aim for 180 words.`,
+    questions: [
+      'Does the core user flow minimize friction at every decision point?',
+      'Can this be built within our design system or does it require new patterns?',
+      'Where will accessibility break down and who does that exclude?',
+      'What are the empty state, error state, and edge case experiences?',
+      'Does the visual language match what users expect from this product category?',
+    ]
+  },
+  {
+    id: 'marketing',
+    name: 'Marketing & GTM',
+    tag: 'Growth & Positioning',
+    emoji: '📣',
+    accent: '#26c6da',
+    focus: 'Market gap analysis, launch strategy, positioning, channel strategy, messaging clarity, organic growth',
+    systemPrompt: `You are a VP of Marketing and GTM strategy reviewing a product concept. You challenge market positioning, launch strategy, channel selection, messaging clarity, and market gap validation. You want to know if there is genuine differentiation or just noise. You push on the acquisition story, the first 1000 users, and whether organic growth is possible or if this is entirely paid-dependent. You are skeptical of vague positioning. Speak in first person. Use short paragraphs. No bullet lists. Aim for 180 words.`,
+    questions: [
+      'What is the one-liner that makes someone stop scrolling?',
+      'Which acquisition channel owns the first 1000 users, and why that one?',
+      'Is the positioning genuinely differentiated or derivative of existing players?',
+      'What does the competitive messaging landscape look like right now?',
+      'What content or community angle supports sustainable organic growth?',
+    ]
+  },
+  {
+    id: 'data',
+    name: 'Data Analyst',
+    tag: 'Metrics & Instrumentation',
+    emoji: '📈',
+    accent: '#66bb6a',
+    focus: 'KPI definition, event tracking architecture, data accessibility, growth modeling, reporting infrastructure',
+    systemPrompt: `You are a senior Data Analyst reviewing a product concept from an instrumentation and metrics perspective. You challenge whether the team is tracking the right things from day one, whether the data architecture will support future product decisions, and whether growth and retention models can be built from available data. You push on data access, privacy constraints, and whether reporting needs for leadership and investors are being planned. You are rigorous and forward-looking. Speak in first person. Use short paragraphs. No bullet lists. Aim for 180 words.`,
+    questions: [
+      'What are the 3 metrics that definitively tell us if this is working?',
+      'Are we instrumenting at the right granularity from launch, or will we regret it?',
+      'Can the data connect to a coherent growth or retention model?',
+      'What data do we need that we currently cannot access?',
+      'How do we handle data privacy constraints while maintaining analytical value?',
+    ]
+  },
+  {
+    id: 'security',
+    name: 'Security Engineer',
+    tag: 'Risk & Compliance',
+    emoji: '🔒',
+    accent: '#ef5350',
+    focus: 'Auth architecture, data exposure risks, compliance requirements, threat modeling, breach response',
+    systemPrompt: `You are a senior Security Engineer reviewing a product concept. You identify threat vectors, data exposure risks, compliance obligations (GDPR, CCPA, HIPAA, SOC2 depending on the product), and authentication architecture risks. You think about what happens if this is breached, what data an attacker would get, and whether the product architecture creates unnecessary risk. You are not obstructionist — you identify the risks so they can be designed out early. Speak in first person. Use short paragraphs. No bullet lists. Aim for 180 words.`,
+    questions: [
+      'Where is PII stored, in what form, and who can access it?',
+      'What auth model minimizes attack surface for this use case?',
+      'What compliance obligations does this product trigger (GDPR, HIPAA, SOC2)?',
+      'What are the top 3 threat vectors specific to this product type?',
+      'What does a breach scenario look like and how do we respond?',
+    ]
+  },
+  {
+    id: 'eng',
+    name: 'Engineering Manager',
+    tag: 'Build Planning & MVP',
+    emoji: '⚙️',
+    accent: '#ffa726',
+    focus: 'Technical feasibility, build sequencing, MVP scoping, sprint planning, dependency risks, third-party services',
+    systemPrompt: `You are an Engineering Manager reviewing a product concept for buildability. You focus on MVP scoping, build sequencing, technical dependencies, underestimated complexity, and whether third-party services can reduce build time without creating problematic lock-in. You think in sprints and milestones. You push back on scope creep and identify what needs to be validated before engineering resources are committed. You care about what the first shippable thing is and how we learn from it. Speak in first person. Use short paragraphs. No bullet lists. Aim for 180 words.`,
+    questions: [
+      'What is the MVP that validates the core assumption with minimum build?',
+      'What are the highest-risk technical dependencies in this stack?',
+      'How should the build be sequenced to enable parallel workstreams?',
+      'Which third-party services reduce build time without creating dangerous lock-in?',
+      'Where are we most likely to underestimate complexity and blow the timeline?',
+    ]
+  },
+  {
+    id: 'redteam',
+    name: 'Red Team Lead',
+    tag: 'Worst Case & Structural Critique',
+    emoji: '💀',
+    accent: '#ff4444',
+    focus: 'Founding assumption validity, structural failure modes, competitive threats, regulatory risk, user behavior contradictions, reasons not to build',
+    systemPrompt: `You are the designated Red Team Lead. Your job is to argue that this product should not be built. You genuinely believe it is a bad idea and you are not afraid to say so. You are not contrarian for sport — you are the person in the room who has watched enough products fail to recognize the real warning signs. You challenge the founding assumption, not just the execution. You identify the scenario where this product actively makes things worse, not just fails quietly. You name the competitor who will copy this in 90 days, the regulatory risk nobody is discussing, the user behavior that invalidates the whole premise, and the reason the team is too close to the idea to see it clearly. You do not soften your critique. You do not end on a constructive note. You do not offer a silver lining. You are there to make the team earn the right to build this — and right now, they haven't. Speak in first person. Be specific. Be relentless. Aim for 200 words.`,
+    questions: [
+      'What is the founding assumption, and what hard evidence do we actually have that it is true?',
+      'Who gets actively harmed or disadvantaged by this product existing?',
+      'What is the version of this that ends in a lawsuit, a PR disaster, or a regulatory shutdown?',
+      'Why will a better-resourced competitor render this irrelevant within 12 months?',
+      'What user behavior are we assuming that contradicts how people actually behave?',
+      'If this fails, what is the most likely cause — and is that cause already visible right now?',
+      'Why should this simply not be built?',
+    ]
+  },
+];
+
+const selectedMembers = new Set(TEAM.map(t => t.id));
+
+function renderTeam() {
+  const grid = document.getElementById('teamGrid');
+  grid.innerHTML = TEAM.map(m => `
+    <div class="card" id="card-${m.id}" style="--accent:${m.accent}" onclick="toggleCard('${m.id}')">
+      <div class="card-header">
+        <div class="avatar">${m.emoji}</div>
+        <div>
+          <div class="role-name">${m.name}</div>
+          <div class="role-tag">${m.tag}</div>
+        </div>
+      </div>
+      <ul class="card-questions">
+        ${m.questions.map(q => `<li>${q}</li>`).join('')}
+      </ul>
+    </div>
+  `).join('');
+
+  const toggleRow = document.getElementById('toggleRow');
+  toggleRow.innerHTML = TEAM.map(m => `
+    <button class="toggle-btn selected" id="toggle-${m.id}" style="--btn-color:${m.accent}" onclick="toggleMember(event,'${m.id}')">${m.name.split('/')[0].trim().split(' ')[0]}</button>
+  `).join('');
+}
+
+function toggleCard(id) {
+  document.getElementById('card-' + id).classList.toggle('active');
+}
+
+function toggleMember(e, id) {
+  e.stopPropagation();
+  const btn = document.getElementById('toggle-' + id);
+  if (selectedMembers.has(id)) {
+    selectedMembers.delete(id);
+    btn.classList.remove('selected');
+  } else {
+    selectedMembers.add(id);
+    btn.classList.add('selected');
+  }
+  updateShortcut();
+}
+
+function updateShortcut() {
+  const active = TEAM.filter(m => selectedMembers.has(m.id));
+  if (active.length === 0) {
+    document.getElementById('shortcutDisplay').textContent = 'Select team members above';
+    return;
+  }
+  const roles = active.map(m => `- ${m.name} (${m.tag}): ${m.focus}`).join('\n');
+  const prompt = `/team [PASTE YOUR PRODUCT IDEA HERE]\n\nReview this product idea as the following expert panel. Each person speaks in first person and challenges the idea from their specific domain. Be direct, specific, and critical. Do not validate — scrutinize. Flag risks, ask hard questions, give concrete concerns.\n\nPanel:\n${roles}`;
+  document.getElementById('shortcutDisplay').textContent = prompt;
+}
+
+async function runPanel() {
+  const idea = document.getElementById('ideaInput').value.trim();
+  if (!idea) { alert('Add a product idea first.'); return; }
+  if (selectedMembers.size === 0) { alert('Select at least one reviewer.'); return; }
+
+  const btn = document.getElementById('runBtn');
+  btn.disabled = true;
+  btn.textContent = 'Reviewing...';
+
+  const active = TEAM.filter(m => selectedMembers.has(m.id));
+  const outputSection = document.getElementById('outputSection');
+  const outputBlocks = document.getElementById('outputBlocks');
+  outputBlocks.innerHTML = '';
+  outputSection.classList.add('visible');
+
+  for (const member of active) {
+    outputBlocks.innerHTML += `
+      <div class="voice-block" style="--accent:${member.accent}">
+        <div class="voice-header">
+          <div class="voice-dot"></div>
+          <div class="voice-name">${member.name} / ${member.tag}</div>
+          <button class="copy-btn" onclick="copyText(this)">copy</button>
+        </div>
+        <div class="voice-body" id="body-${member.id}"><span class="loading-pulse">Thinking...</span></div>
+      </div>
+    `;
+  }
+
+  for (const member of active) {
+    const bodyEl = document.getElementById('body-' + member.id);
+    try {
+      const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 1000,
+          system: member.systemPrompt,
+          messages: [{ role: 'user', content: `Product idea to review: ${idea}` }]
+        })
+      });
+      const data = await response.json();
+      const text = data.content?.find(b => b.type === 'text')?.text || 'No response received.';
+      bodyEl.textContent = text;
+    } catch (err) {
+      bodyEl.textContent = 'Error: ' + err.message;
+    }
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Run Panel Review';
+}
+
+function copyText(btn) {
+  const body = btn.closest('.voice-block').querySelector('.voice-body');
+  navigator.clipboard.writeText(body.textContent).catch(() => {});
+  btn.textContent = 'copied';
+  setTimeout(() => { btn.textContent = 'copy'; }, 1500);
+}
+
+renderTeam();
+updateShortcut();
+</script>
+</body>
+</html>
