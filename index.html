@@ -986,7 +986,7 @@ async function streamReview(member, idea, apiKey) {
         'x-anthropic-key': apiKey,
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-sonnet-4-5',
         max_tokens: 1000,
         stream: true,
         system: member.systemPrompt,
